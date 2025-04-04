@@ -5,6 +5,8 @@ library(dplyr)
 library(readr)
 library(RColorBrewer)  # To access different color palettes
 library(shinyjs)  # For handling JavaScript functions
+library(rsconnect)
+    rsconnect::deployApp('NH-MFG-Map-App/NH Manufacturing Map.R')
 
 # Load the CSV file from GitHub repository
 data <- read_csv("https://raw.githubusercontent.com/your-username/NH-MFG-Map-App/main/www/Sample%20Set%203.17.25.csv")
