@@ -9,7 +9,7 @@ library(rsconnect)
     rsconnect::deployApp('NH-MFG-Map-App/NH Manufacturing Map.R')
 
 # Load the CSV file from GitHub repository
-data <- read_csv("https://raw.githubusercontent.com/your-username/NH-MFG-Map-App/main/www/Sample%20Set%203.17.25.csv")
+data <- read_csv("https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/www/Sample%20Set%203.17.25.csv")
 
 # Define UI
 ui <- fluidPage(
@@ -34,7 +34,7 @@ ui <- fluidPage(
   # Header section with the image banner from GitHub
   div(
     class = "header-graphic",
-    img(src = "https://raw.githubusercontent.com/your-username/NH-MFG-Map-App/main/www/NH%20Manufacturing%20Interactive%20Search%20Map%20for%20Supply%20Chain%20Inventory.jpg", 
+    img(src = "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/www/NH%20Manufacturing%20Interactive%20Search%20Map%20for%20Supply%20Chain%20Inventory.jpg", 
         class = "header-graphic")
   ),
   
@@ -180,7 +180,7 @@ library(RColorBrewer)  # To access different color palettes
 library(shinyjs)  # For handling JavaScript functions
 
 # Load the CSV file from GitHub repository
-data <- read_csv("https://raw.githubusercontent.com/your-username/NH-MFG-Map-App/main/www/Sample%20Set%203.17.25.csv")
+data <- read_csv("https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/www/Sample%20Set%203.17.25.csv")
 
 # Define UI
 ui <- fluidPage(
@@ -205,7 +205,7 @@ ui <- fluidPage(
   # Header section with the image banner from GitHub
   div(
     class = "header-graphic",
-    img(src = "https://raw.githubusercontent.com/your-username/NH-MFG-Map-App/main/www/NH%20Manufacturing%20Interactive%20Search%20Map%20for%20Supply%20Chain%20Inventory.jpg", 
+    img(src = "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/www/NH%20Manufacturing%20Interactive%20Search%20Map%20for%20Supply%20Chain%20Inventory.jpg", 
         class = "header-graphic")
   ),
   
