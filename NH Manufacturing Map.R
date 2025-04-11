@@ -60,15 +60,14 @@ ui <- fluidPage(
       actionButton("select_all", "Select All", class = "btn-primary"),
       actionButton("unselect_all", "Unselect All", class = "btn-danger"),
       br(), br(),
-      checkboxGroupInput(
-        "industry_filter",
-        "Select Industry Categories:",
-        choices = sort(unique(data$`Industry Category`)),
-        selected = sort(unique(data$`Industry Category`))
-      ),
-      textInput("naics_code", "Search by NAICS Code:", value = ""),
-      helpText("Enter NAICS code to filter companies by NAICS description")
-    ),
+      selectInput(
+  inputId = "industry_filter",
+  label = "Select Industry Categories:",
+  choices = sort(unique(data$`Industry Category`)),
+  selected = sort(unique(data$`Industry Category`)),
+  multiple = TRUE,
+  selectize = TRUE
+),
 
     mainPanel(
       leafletOutput("map"),
