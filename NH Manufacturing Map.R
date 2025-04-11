@@ -12,6 +12,19 @@ data <- read_csv(data_url)
 
 # Define UI
 ui <- fluidPage(
+  # JavaScript to hide keyboard when tapping outside text inputs
+  tags$script(HTML("
+    document.addEventListener('touchstart', function(event) {
+      var isTextInput = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
+      if (!isTextInput) {
+        var inputs = document.querySelectorAll('input, textarea');
+        inputs.forEach(function(input) {
+          input.blur();
+        });
+      }
+    }, false);
+  ")),
+
   useShinyjs(),
 
   tags$head(
