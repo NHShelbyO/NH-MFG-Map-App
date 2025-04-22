@@ -5,6 +5,7 @@ library(dplyr)
 library(readr)
 library(RColorBrewer)
 library(shinyjs)
+library(DT)
 
 # Load the CSV file directly from GitHub using raw URL
 data_url <- "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/Sample%20Set%203.17.25.csv"
@@ -44,7 +45,6 @@ ui <- fluidPage(
     "))
   ),
 
-  # Replace with your GitHub-hosted image (via raw link)
   div(
     class = "header-graphic",
     img(src = "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/www/NH%20Manufacturing%20Interactive%20Search%20Map%20for%20Supply%20Chain%20Inventory.jpg")
@@ -55,24 +55,26 @@ ui <- fluidPage(
   sidebarLayout(
     sidebarPanel(
       textInput("keyword", "Search Keyword:", value = ""),
+      textInput("naics_code", "Search NAICS Code:", value = ""),
       helpText("Type a keyword to search in Company Name, Industry Category, or Description"),
       br(),
       actionButton("select_all", "Select All", class = "btn-primary"),
       actionButton("unselect_all", "Unselect All", class = "btn-danger"),
       br(), br(),
       selectInput(
-  inputId = "industry_filter",
-  label = "Select Industry Categories:",
-  choices = sort(unique(data$`Industry Category`)),
-  selected = sort(unique(data$`Industry Category`)),
-  multiple = TRUE,
-  selectize = TRUE
-),
+        inputId = "industry_filter",
+        label = "Select Industry Categories:",
+        choices = sort(unique(data$`Industry Category`)),
+        selected = sort(unique(data$`Industry Category`)),
+        multiple = TRUE,
+        selectize = TRUE
+      )
+    ),
 
     mainPanel(
       leafletOutput("map"),
       br(),
-      tableOutput("search_results")
+      DTOutput("search_results")
     )
   )
 )
@@ -103,8 +105,8 @@ server <- function(input, output, session) {
   })
 
   industry_palette <- reactive({
-    req(filtered_data())
-    colorFactor(palette = brewer.pal(9, "Set1"), domain = unique(filtered_data()$`Industry Category`))
+    # Use full dataset for consistent colors
+    colorFactor(palette = brewer.pal(9, "Set1"), domain = unique(data$`Industry Category`))
   })
 
   output$map <- renderLeaflet({
@@ -125,34 +127,26 @@ server <- function(input, output, session) {
       )
   })
 
-  output$search_results <- renderTable({
+  output$search_results <- renderDT({
     req(filtered_data())
     color_fn <- industry_palette()
 
     filtered_data() %>%
-      mutate(IndustryCategoryColor = sapply(`Industry Category`, function(x) {
-        color_fn(x)
-      })) %>%
-      select(`CIS ID#`, `Industry Category`, `Industry Sub Category`, `Company Name`, `NAICS 2022 Code`, IndustryCategoryColor) %>%
-      {
-        data.frame(
-          `CIS ID#` = .$`CIS ID#`,
-          `Industry Category` = paste0('<span style="color:', .$IndustryCategoryColor, '">', .$`Industry Category`, '</span>'),
-          `Industry Sub Category` = .$`Industry Sub Category`,
-          `Company Name` = .$`Company Name`,
-          `NAICS 2022 Code` = .$`NAICS 2022 Code`
-        )
-      }
-  }, sanitize.text.function = function(x) x)
+      mutate(IndustryCategoryColor = sapply(`Industry Category`, color_fn)) %>%
+      mutate(`Industry Category` = paste0('<span style="color:', IndustryCategoryColor, '">', `Industry Category`, '</span>')) %>%
+      select(`CIS ID#`, `Industry Category`, `Industry Sub Category`, `Company Name`, `NAICS 2022 Code`) %>%
+      datatable(escape = FALSE, options = list(pageLength = 10))
+  })
 
   observeEvent(input$select_all, {
-    updateCheckboxGroupInput(session, "industry_filter", selected = sort(unique(data$`Industry Category`)))
+    updateSelectInput(session, "industry_filter", selected = sort(unique(data$`Industry Category`)))
   })
 
   observeEvent(input$unselect_all, {
-    updateCheckboxGroupInput(session, "industry_filter", selected = character(0))
+    updateSelectInput(session, "industry_filter", selected = character(0))
   })
 }
 
 # Run app
 shinyApp(ui = ui, server = server)
+
