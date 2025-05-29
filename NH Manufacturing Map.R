@@ -1,4 +1,4 @@
-# Load necessary libraries
+## Load necessary libraries
 library(shiny)
 library(leaflet)
 library(dplyr)
@@ -8,12 +8,12 @@ library(shinyjs)
 library(DT)
 
 # Load the CSV file directly from GitHub using raw URL
-data_url <- "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/Sample%20Set%203.17.25.csv"
+data_url <- "https://raw.githubusercontent.com/NHShelbyO/NH-MFG-Map-App/main/R_Map_Data_EOMay.csv"
 data <- read_csv(data_url)
 
 # Define UI
 ui <- fluidPage(
-  # JavaScript to hide keyboard when tapping outside text inputs
+  # JavaScript to hide keyboard on mobile when tapping outside inputs
   tags$script(HTML("
     document.addEventListener('touchstart', function(event) {
       var isTextInput = event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA';
@@ -56,7 +56,7 @@ ui <- fluidPage(
     sidebarPanel(
       textInput("keyword", "Search Keyword:", value = ""),
       textInput("naics_code", "Search NAICS Code:", value = ""),
-      helpText("Type a keyword to search in Company Name, Industry Category, or Description"),
+      helpText("Type a keyword to search in Company Name, Industry Category, Subcategory, Description, or Keywords."),
       br(),
       actionButton("select_all", "Select All", class = "btn-primary"),
       actionButton("unselect_all", "Unselect All", class = "btn-danger"),
@@ -87,12 +87,14 @@ server <- function(input, output, session) {
     filtered <- filter(data, `Industry Category` %in% input$industry_filter)
 
     if (input$keyword != "") {
+      keyword <- tolower(input$keyword)
       filtered <- filtered %>%
         filter(
-          grepl(input$keyword, `Company Name`, ignore.case = TRUE) |
-            grepl(input$keyword, `Industry Category`, ignore.case = TRUE) |
-            grepl(input$keyword, `Industry Sub Category`, ignore.case = TRUE) |
-            grepl(input$keyword, `NAICS 2022 Description`, ignore.case = TRUE)
+          grepl(keyword, tolower(`Company Name`)) |
+          grepl(keyword, tolower(`Industry Category`)) |
+          grepl(keyword, tolower(`Industry Sub Category`)) |
+          grepl(keyword, tolower(`NAICS 2022 Description`)) |
+          grepl(keyword, tolower(`Key Words/ Phrases`))
         )
     }
 
@@ -105,7 +107,6 @@ server <- function(input, output, session) {
   })
 
   industry_palette <- reactive({
-    # Use full dataset for consistent colors
     colorFactor(palette = brewer.pal(9, "Set1"), domain = unique(data$`Industry Category`))
   })
 
@@ -117,9 +118,13 @@ server <- function(input, output, session) {
       addTiles() %>%
       addCircleMarkers(
         ~Longitude, ~Latitude,
-        popup = ~paste("<b>", `Company Name`, "</b><br>",
-                       `Industry Category`, "<br>", `NAICS 2022 Description`, "<br>",
-                       "<a href='", URL, "' target='_blank'>Website</a>"),
+        popup = ~paste0(
+          "<b>", `Company Name`, "</b><br>",
+          `Industry Category`, " / ", `Industry Sub Category`, "<br>",
+          `NAICS 2022 Description`, "<br>",
+          "<a href='", URL, "' target='_blank'>Website</a><br>",
+          "<small>", `Key Words/ Phrases`, "</small>"
+        ),
         color = ~color_fn(`Industry Category`),
         radius = 8,
         stroke = FALSE,
@@ -133,8 +138,10 @@ server <- function(input, output, session) {
 
     filtered_data() %>%
       mutate(IndustryCategoryColor = sapply(`Industry Category`, color_fn)) %>%
-      mutate(`Industry Category` = paste0('<span style="color:', IndustryCategoryColor, '">', `Industry Category`, '</span>')) %>%
-      select(`CIS ID#`, `Industry Category`, `Industry Sub Category`, `Company Name`, `NAICS 2022 Code`) %>%
+      mutate(`Industry Category` = paste0(
+        '<span style="color:', IndustryCategoryColor, '">', `Industry Category`, '</span>'
+      )) %>%
+      select(`Industry Category`, `Industry Sub Category`, `Company Name`, `NAICS 2022 Code`, `NAICS 2022 Description`) %>%
       datatable(escape = FALSE, options = list(pageLength = 10))
   })
 
@@ -149,4 +156,3 @@ server <- function(input, output, session) {
 
 # Run app
 shinyApp(ui = ui, server = server)
-
